@@ -111,18 +111,35 @@ export async function callWebHook(
       data = Object.assign({ event: event, session: client.session }, data);
       if (req.serverOptions.mapper.enable)
         data = await convert(req.serverOptions.mapper.prefix, data);
-      api
-        .post(webhook, data)
-        .then(() => {
-          try {
-            const events = ['unreadmessages', 'onmessage'];
-            if (events.includes(event) && req.serverOptions.webhook.readMessage)
-              client.sendSeen(chatId);
-          } catch (e) {}
-        })
-        .catch((e) => {
-          req.logger.warn('Error calling Webhook.', e);
-        });
+      if (config.webhook.awsSQSUrl === '') {
+        api
+          .post(webhook, data)
+          .then(() => {
+            try {
+              const events = ['unreadmessages', 'onmessage'];
+              if (
+                events.includes(event) &&
+                req.serverOptions.webhook.readMessage
+              )
+                client.sendSeen(chatId);
+            } catch (e) {}
+          })
+          .catch((e) => {
+            req.logger.warn('Error calling Webhook.', e);
+          });
+      } else {
+        const sqs = new aws.SQS();
+        const params = {
+          MessageBody: data,
+          QueueUrl: config.webhook.awsSQSUrl,
+        };
+        sqs
+          .sendMessage(params)
+          .promise()
+          .catch((e) => {
+            req.logger.warn('Error calling aws sqs.', e);
+          });
+      }
     } catch (e) {
       req.logger.error(e);
     }
