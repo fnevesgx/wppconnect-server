@@ -12,6 +12,8 @@ export default {
     url: null,
     autoDownload: true,
     uploadS3: false,
+    awsBucketName: '',
+    awsSQSUrl: '',
     readMessage: true,
     allUnreadOnStart: false,
     listenAcks: true,
