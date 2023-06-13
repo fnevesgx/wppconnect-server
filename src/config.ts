@@ -22,6 +22,11 @@ export default {
     onReactionMessage: true,
     onPollResponse: true,
     onRevokedMessage: true,
+    onLabelUpdated: true,
+  },
+  chatwoot: {
+    sendQrCode: true,
+    sendStatus: true,
   },
   archive: {
     enable: false,
